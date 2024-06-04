@@ -87,15 +87,12 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 
 	err := app.ReadJSON(w, r, &input)
 	if err != nil {
-		fmt.Println("hello World1")
 		app.badRequestResponse(w, r, err)
 		return
 	}
 
 	user, err := app.models.Users.GetForToken(data.ScopeActivation, input.TokenString)
 	if err != nil {
-
-		fmt.Println("hello World2")
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
 			app.failedValidationResponse(w, r, map[string]string{"error": "invalid token"})
@@ -109,8 +106,6 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 
 	err = app.models.Users.Update(user)
 	if err != nil {
-
-		fmt.Println("hello World3")
 		switch {
 		case errors.Is(err, data.ErrEditConflict):
 			app.editConflictResponse(w, r)
@@ -122,8 +117,6 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 
 	err = app.models.Tokens.DeleteForUser(data.ScopeActivation, user.ID)
 	if err != nil {
-
-		fmt.Println("hello World4")
 		app.serverErrorResponse(w, r, err)
 	}
 

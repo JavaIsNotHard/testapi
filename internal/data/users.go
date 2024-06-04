@@ -98,6 +98,38 @@ type UserModel struct {
 	DB *pgx.Conn
 }
 
+func (m UserModel) Get(id int64) (*Users, error) {
+	query := `
+		SELECT id, created_at, username, email, password_hash, activated, version
+		FROM users
+		WHERE id = $1`
+
+	var user Users
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRow(ctx, query, id).Scan(
+		&user.ID,
+		&user.CreatedAt,
+		&user.Username,
+		&user.Email,
+		&user.Password.hash,
+		&user.Activated,
+		&user.Version,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+	return &user, nil
+}
+
 func (m UserModel) Insert(user *Users) error {
 	query := `
 		INSERT INTO users (username, email, password_hash, activated)

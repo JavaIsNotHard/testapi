@@ -11,8 +11,8 @@ func (app *application) routes() http.Handler {
 
 	mux.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.requiredActivatedUser(app.healthcheck))
 	mux.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHanlder)
-	mux.HandlerFunc(http.MethodPost, "/v1/tokens/authentication", app.createAuthenticationToken)
+	mux.HandlerFunc(http.MethodPost, "/v1/tokens/authentication", app.createJWTtoken)
 	mux.HandlerFunc(http.MethodPut, "/v1/users/activated", app.activateUserHandler)
 
-	return app.logRequest(app.authenicate(mux))
+	return app.logRequest(app.enableCors(app.authenticateJWT(mux)))
 }

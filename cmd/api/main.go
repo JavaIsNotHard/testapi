@@ -14,6 +14,8 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+const SecretKey = "secret"
+
 type config struct {
 	env  string
 	port int
