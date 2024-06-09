@@ -97,19 +97,38 @@ func (app *application) createJWTtoken(w http.ResponseWriter, r *http.Request) {
 		Issuer:    "jibeshshrestha",
 		IssuedAt:  jwt.TimeFunc().Unix(),
 		NotBefore: jwt.TimeFunc().Unix(),
-		ExpiresAt: jwt.TimeFunc().Add(24 * time.Hour).Unix(),
+		ExpiresAt: jwt.TimeFunc().Add(2 * time.Minute).Unix(),
 		Audience:  "jibeshshrestha",
 	})
 
-	token, err := claims.SignedString([]byte(SecretKey))
+	accessToken, err := claims.SignedString([]byte(SecretKey))
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	err = app.WriteJSON(w, r, map[string]any{"authentication_token": token}, nil, http.StatusCreated)
+	refreshClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
+		Subject:   strconv.FormatInt(existingUser.ID, 10),
+		Issuer:    "jibeshshrestha",
+		IssuedAt:  jwt.TimeFunc().Unix(),
+		NotBefore: jwt.TimeFunc().Unix(),
+		ExpiresAt: jwt.TimeFunc().Add(24 * time.Hour).Unix(),
+		Audience:  "jibeshshrestha",
+	})
+
+	refreshToken, err := refreshClaims.SignedString([]byte(SecretKey))
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.WriteJSON(w, r, map[string]any{"access_token": accessToken, "refresh_token": refreshToken}, nil, http.StatusCreated)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
+}
+
+func (app *application) refreshJWTtoken(w http.ResponseWriter, r *http.Request) {
+
 }
