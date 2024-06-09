@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/golang-jwt/jwt"
 )
@@ -83,6 +84,7 @@ func (app *application) authenticateJWT(next http.Handler) http.Handler {
 
 		authenticationtoken := headerPart[1]
 
+		// this token should be the access token
 		token, err := jwt.ParseWithClaims(authenticationtoken, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(SecretKey), nil //using the SecretKey which was generated in th Login function
 		})
@@ -93,6 +95,11 @@ func (app *application) authenticateJWT(next http.Handler) http.Handler {
 		}
 
 		claims := token.Claims.(*jwt.StandardClaims)
+		if time.Unix(claims.ExpiresAt, 0).Before(time.Now()) {
+			app.refreshJWTtoken(w, r)
+			return
+		}
+
 		userID, err := strconv.ParseInt(claims.Subject, 10, 64)
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
